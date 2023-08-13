@@ -19,6 +19,8 @@ std = []
 # And you can still just disable std by disabling default features, without enabling these two.
 alloc = ["core2/alloc"]
 serde-std = ["serde/std"]
+# Smaller (but slower) hash implementations for sha512/sha256 and ripemd160
+small-hash = []
 unstable = []  # for benchmarking
 
 [dependencies]

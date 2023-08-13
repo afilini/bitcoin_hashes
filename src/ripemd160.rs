@@ -165,6 +165,26 @@ impl crate::Hash for Hash {
     }
 }
 
+#[cfg(feature = "small-hash")]
+#[macro_use]
+mod small_hash {
+    pub(super) fn round(a: u32, _b: u32, c: u32, _d: u32, e: u32, x: u32, bits: u32, add: u32, round: u32) -> (u32, u32) {
+        let a = a.wrapping_add(round).wrapping_add(x).wrapping_add(add);
+        let a = a.rotate_left(bits).wrapping_add(e);
+        let c = c.rotate_left(10);
+
+        (a, c)
+    }
+
+    macro_rules! round(
+        ($a:expr, $b:expr, $c:expr, $d:expr, $e:expr,
+         $x:expr, $bits:expr, $add:expr, $round:expr) => ({
+            ($a, $c) = small_hash::round($a, $b, $c, $d, $e, $x, $bits, $add, $round);
+        });
+    );
+}
+
+#[cfg(not(feature = "small-hash"))]
 macro_rules! round(
     ($a:expr, $b:expr, $c:expr, $d:expr, $e:expr,
      $x:expr, $bits:expr, $add:expr, $round:expr) => ({
@@ -235,7 +255,7 @@ macro_rules! process_block(
                   $data[$pdata_index1], $pbits1, 0x50a28be6,
                   bbb[$pj1] ^ (bbb[$pj2] | !bbb[$pj3])); )*
 
-        // Porallel Round 2
+        // Parallel Round 2
         $( round!(bbb[$pi0], bbb[$pi1], bbb[$pi2], bbb[$pi3], bbb[$pi4],
                   $data[$pdata_index2], $pbits2, 0x5c4dd124,
                   (bbb[$pi1] & bbb[$pi3]) | (bbb[$pi2] & !bbb[$pi3])); )*
